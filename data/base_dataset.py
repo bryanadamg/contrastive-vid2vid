@@ -28,6 +28,7 @@ class BaseDataset(data.Dataset, ABC):
         """
         self.opt = opt
         self.root = opt.dataroot
+        self.current_epoch = 0
 
     @staticmethod
     def modify_commandline_options(parser, is_train):

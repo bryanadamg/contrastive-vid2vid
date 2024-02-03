@@ -80,6 +80,9 @@ class CustomDatasetDataLoader():
 
     def load_data(self):
         return self
+    
+    def set_epoch(self, epoch):
+        self.dataset.current_epoch = epoch
 
     def __len__(self):
         """Return the number of data in the dataset"""
