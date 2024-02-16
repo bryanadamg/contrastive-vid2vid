@@ -29,7 +29,6 @@ cd contrastive-vid2vid
 - Download dataset (e.g. maps):
 - Train a model:
 ```bash
-#!./scripts/train_cyclegan.sh
 python train.py --dataroot /root/autodl-fs/docker_roads --name docker_roads --CUT_mode CUT --dataset_mode unaligned_triplet
 ```
 To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`.
@@ -39,6 +38,11 @@ To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/ind
 python test.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
 ```
 - The test results will be saved to a html file here: `./results/maps_cyclegan/latest_test/index.html`.
+- Local ssh to view visdom server:
+```bash
+ssh -CNgv -L 8097:127.0.0.1:8097 root@connect.southb.gpuhub.com -p 38759
+```
+
 
 
 
