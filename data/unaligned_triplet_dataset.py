@@ -32,58 +32,65 @@ class UnalignedTripletDataset(BaseDataset):
 
 
     def __getitem__(self, index):
+        """Return a data point and its metadata information.
+
+        Parameters:
+            index (int)      -- a random integer for data indexing
+
+        Returns a dictionary that contains A, B, A_paths and B_paths
+            A (tensor)       -- an image in the input domain
+            B (tensor)       -- its corresponding image in the target domain
+            A_paths (str)    -- image paths
+            B_paths (str)    -- image paths
+        """
         A_path = self.A_paths[index % self.A_size]
-        index_A = index % self.A_size
         if self.opt.serial_batches:
             index_B = index % self.B_size
         else:
             index_B = random.randint(0, self.B_size - 1)
         B_path = self.B_paths[index_B]
-        # print('(A, B) = (%d, %d)' % (index_A, index_B))
-
-	    # read the triplet from A and B --
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
 
         #A = self.transform(A_img)
         #B = self.transform(B_img)
 	    # get the triplet from A
-        A_img = A_img.resize((self.opt.loadSize * 3, self.opt.loadSize), Image.BICUBIC)
+        A_img = A_img.resize((self.opt.load_size * 3, self.opt.load_size), Image.BICUBIC)
         A_img = self.transform(A_img)
 
         w_total = A_img.size(2)
         w = int(w_total / 3)
         h = A_img.size(1)
-        w_offset = random.randint(0, max(0, w - self.opt.fineSize - 1))
-        h_offset = random.randint(0, max(0, h - self.opt.fineSize - 1))
+        w_offset = random.randint(0, max(0, w - self.opt.crop_size - 1))
+        h_offset = random.randint(0, max(0, h - self.opt.crop_size - 1))
 
-        A0 = A_img[:, h_offset:h_offset + self.opt.fineSize,
-                w_offset:w_offset + self.opt.fineSize]
+        A0 = A_img[:, h_offset:h_offset + self.opt.crop_size,
+                w_offset:w_offset + self.opt.crop_size]
 
-        A1 = A_img[:, h_offset:h_offset + self.opt.fineSize,
-               w + w_offset:w + w_offset + self.opt.fineSize]
+        A1 = A_img[:, h_offset:h_offset + self.opt.crop_size,
+               w + w_offset:w + w_offset + self.opt.crop_size]
 
-        A2 = A_img[:, h_offset:h_offset + self.opt.fineSize,
-               2*w + w_offset :2*w + w_offset + self.opt.fineSize]
+        A2 = A_img[:, h_offset:h_offset + self.opt.crop_size,
+               2*w + w_offset :2*w + w_offset + self.opt.crop_size]
 
 	    ## -- get the triplet from B
-        B_img = B_img.resize((self.opt.loadSize * 3, self.opt.loadSize), Image.BICUBIC)
+        B_img = B_img.resize((self.opt.load_size * 3, self.opt.load_size), Image.BICUBIC)
         B_img = self.transform(B_img)
 
         w_total = B_img.size(2)
         w = int(w_total / 3)
         h = B_img.size(1)
-        w_offset = random.randint(0, max(0, w - self.opt.fineSize - 1))
-        h_offset = random.randint(0, max(0, h - self.opt.fineSize - 1))
+        w_offset = random.randint(0, max(0, w - self.opt.crop_size - 1))
+        h_offset = random.randint(0, max(0, h - self.opt.crop_size - 1))
 
-        B0 = B_img[:, h_offset:h_offset + self.opt.fineSize,
-                w_offset:w_offset + self.opt.fineSize]
+        B0 = B_img[:, h_offset:h_offset + self.opt.crop_size,
+                w_offset:w_offset + self.opt.crop_size]
 
-        B1 = B_img[:, h_offset:h_offset + self.opt.fineSize,
-               w + w_offset:w + w_offset + self.opt.fineSize]
+        B1 = B_img[:, h_offset:h_offset + self.opt.crop_size,
+               w + w_offset:w + w_offset + self.opt.crop_size]
 
-        B2 = B_img[:, h_offset:h_offset + self.opt.fineSize,
-               2*w + w_offset :2*w + w_offset + self.opt.fineSize]
+        B2 = B_img[:, h_offset:h_offset + self.opt.crop_size,
+               2*w + w_offset :2*w + w_offset + self.opt.crop_size]
 
 
 
