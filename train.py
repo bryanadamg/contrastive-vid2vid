@@ -58,7 +58,10 @@ if __name__ == '__main__':
             if len(opt.gpu_ids) > 0:
                 torch.cuda.synchronize()
             optimize_start_time = time.time()
-            ### CUT has extra setup here
+            if epoch == opt.epoch_count and i == 0:
+                model.data_dependent_initialize(data)
+                model.setup(opt)               # regular setup: load and print networks; create schedulers
+                model.parallelize()
             model.set_input(data)         # unpack data from dataset and apply preprocessing
             model.optimize_parameters()   # calculate loss functions, get gradients, update network weights
             if len(opt.gpu_ids) > 0:
