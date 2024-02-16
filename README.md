@@ -30,7 +30,7 @@ cd contrastive-vid2vid
 - Train a model:
 ```bash
 #!./scripts/train_cyclegan.sh
-python train.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
+python train.py --dataroot /root/autodl-fs/docker_roads --name docker_roads --CUT_mode CUT --dataset_mode unaligned_triplet
 ```
 To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`.
 - Test the model:
