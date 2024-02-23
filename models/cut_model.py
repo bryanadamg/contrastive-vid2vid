@@ -67,7 +67,7 @@ class CUTModel(BaseModel):
             self.visual_names += ['idt_B']
 
         if self.isTrain:
-            self.model_names = ['G', 'F', 'D']
+            self.model_names = ['G', 'F', 'D', 'P']
         else:  # during test time, only load G
             self.model_names = ['G']
 
