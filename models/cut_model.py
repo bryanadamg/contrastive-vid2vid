@@ -89,7 +89,7 @@ class CUTModel(BaseModel):
                 self.criterionNCE.append(PatchNCELoss(opt).to(self.device))
 
             self.criterionIdt = torch.nn.L1Loss().to(self.device)
-            self.criterionPred = torch.nn.L1Loss().to(self.device)
+            self.criterionCycle = torch.nn.L1Loss().to(self.device)
             self.optimizer_G = torch.optim.Adam(
                 self.netG.parameters(), self.netP.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2)
             )
@@ -157,15 +157,27 @@ class CUTModel(BaseModel):
     def forward(self):
         """Run forward pass; called by both functions <optimize_parameters> and <test>."""
         self.real = torch.cat((self.real_A, self.real_B), dim=0) if self.opt.nce_idt and self.opt.isTrain else self.real_A
+        self.real1 = torch.cat((self.real_A1, self.real_B1), dim=0) if self.opt.nce_idt and self.opt.isTrain else self.real_A1
+        self.real2 = torch.cat((self.real_A2, self.real_B2), dim=0) if self.opt.nce_idt and self.opt.isTrain else self.real_A2
+
         if self.opt.flip_equivariance:
             self.flipped_for_equivariance = self.opt.isTrain and (np.random.random() < 0.5)
             if self.flipped_for_equivariance:
                 self.real = torch.flip(self.real, [3])
+                self.real1 = torch.flip(self.real1, [3])
+                self.real2 = torch.flip(self.real2, [3])
 
         self.fake = self.netG(self.real)
+        self.fake1 = self.netG(self.real1)
+        self.fake2 = self.netG(self.real2)
+
         self.fake_B = self.fake[:self.real_A.size(0)]
+        self.fake_B1 = self.fake1[:self.real_A1.size(0)]
+        self.fake_B2 = self.fake2[:self.real_A2.size(0)]
         if self.opt.nce_idt:
             self.idt_B = self.fake[self.real_A.size(0):]
+            self.idt_B1 = self.fake1[self.real_A1.size(0):]
+            self.idt_B2 = self.fake2[self.real_A2.size(0):]
 
     def compute_D_loss(self):
         """Calculate GAN loss for the discriminator"""
@@ -202,13 +214,13 @@ class CUTModel(BaseModel):
             loss_NCE_both = (self.loss_NCE + self.loss_NCE_Y) * 0.5
         else:
             loss_NCE_both = self.loss_NCE
+    
+
 
         # Prediction Loss
         # B1 & B2 -> B0
-        fake_B1 = self.netG(self.real_A1)
-        fake_B2 = self.netG(self.real_A2)
-        pred_B = self.netP(fake_B1, fake_B2)
-        loss_pred_B = self.criterionPred(pred_B, self.real_B) * self.opt.lambda_GAN
+        pred_B = self.netP(self.real_B1, self.real_B2)
+        loss_pred_B = self.criterionCycle(pred_B, self.real_B) * self.opt.lambda_GAN
 
         self.loss_G = self.loss_G_GAN + loss_NCE_both + loss_pred_B
         return self.loss_G
