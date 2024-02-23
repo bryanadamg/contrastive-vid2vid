@@ -75,6 +75,9 @@ class CUTModel(BaseModel):
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)
         self.netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, self.gpu_ids, opt)
 
+        self.netP = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)
+
+
         if self.isTrain:
             self.netD = networks.define_D(opt.output_nc, opt.ndf, opt.netD, opt.n_layers_D, opt.normD, opt.init_type, opt.init_gain, opt.no_antialias, self.gpu_ids, opt)
 
@@ -86,7 +89,10 @@ class CUTModel(BaseModel):
                 self.criterionNCE.append(PatchNCELoss(opt).to(self.device))
 
             self.criterionIdt = torch.nn.L1Loss().to(self.device)
-            self.optimizer_G = torch.optim.Adam(self.netG.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2))
+            self.criterionPred = torch.nn.L1Loss().to(self.device)
+            self.optimizer_G = torch.optim.Adam(
+                self.netG.parameters(), self.netP.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2)
+            )
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2))
             self.optimizers.append(self.optimizer_G)
             self.optimizers.append(self.optimizer_D)
@@ -140,7 +146,12 @@ class CUTModel(BaseModel):
         """
         AtoB = self.opt.direction == 'AtoB'
         self.real_A = input['A0' if AtoB else 'B0'].to(self.device)
+        self.real_A1 = input['A1' if AtoB else 'B1'].to(self.device)
+        self.real_A2 = input['A2' if AtoB else 'B2'].to(self.device)
+
         self.real_B = input['B0' if AtoB else 'A0'].to(self.device)
+        self.real_B1 = input['B1' if AtoB else 'A1'].to(self.device)
+        self.real_B2 = input['B2' if AtoB else 'A2'].to(self.device)
         self.image_paths = input['A_paths' if AtoB else 'B_paths']
 
     def forward(self):
@@ -192,7 +203,14 @@ class CUTModel(BaseModel):
         else:
             loss_NCE_both = self.loss_NCE
 
-        self.loss_G = self.loss_G_GAN + loss_NCE_both
+        # Prediction Loss
+        # B1 & B2 -> B0
+        fake_B1 = self.netG(self.real_A1)
+        fake_B2 = self.netG(self.real_A2)
+        pred_B = self.netP(fake_B1, fake_B2)
+        loss_pred_B = self.criterionPred(pred_B, self.real_B) * self.opt.lambda_GAN
+
+        self.loss_G = self.loss_G_GAN + loss_NCE_both + loss_pred_B
         return self.loss_G
 
     def calculate_NCE_loss(self, src, tgt):
