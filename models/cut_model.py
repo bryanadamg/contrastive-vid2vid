@@ -182,12 +182,22 @@ class CUTModel(BaseModel):
     def compute_D_loss(self):
         """Calculate GAN loss for the discriminator"""
         fake = self.fake_B.detach()
+        fake1 = self.fake_B1.detach()
+        fake2 = self.fake_B2.detach()
         # Fake; stop backprop to the generator by detaching fake_B
         pred_fake = self.netD(fake)
+        pred_fake1 = self.netD(fake1)
+        pred_fake2 = self.netD(fake2)
         self.loss_D_fake = self.criterionGAN(pred_fake, False).mean()
+        self.loss_D_fake += self.criterionGAN(pred_fake1, False).mean()
+        self.loss_D_fake += self.criterionGAN(pred_fake2, False).mean()
         # Real
         self.pred_real = self.netD(self.real_B)
+        self.pred_real1 = self.netD(self.real_B1)
+        self.pred_real2 = self.netD(self.real_B2)
         loss_D_real = self.criterionGAN(self.pred_real, True)
+        loss_D_real += self.criterionGAN(self.pred_real1, True)
+        loss_D_real += self.criterionGAN(self.pred_real2, True)
         self.loss_D_real = loss_D_real.mean()
 
         # combine loss and calculate gradients
