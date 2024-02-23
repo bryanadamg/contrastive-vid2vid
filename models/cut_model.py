@@ -197,25 +197,34 @@ class CUTModel(BaseModel):
     def compute_G_loss(self):
         """Calculate GAN and NCE loss for the generator"""
         fake = self.fake_B
+        fake1 = self.fake_B1
+        fake2 = self.fake_B2
         # First, G(A) should fake the discriminator
         if self.opt.lambda_GAN > 0.0:
             pred_fake = self.netD(fake)
+            pred_fake1 = self.netD(fake1)
+            pred_fake2 = self.netD(fake2)
             self.loss_G_GAN = self.criterionGAN(pred_fake, True).mean() * self.opt.lambda_GAN
+            self.loss_G_GAN += self.criterionGAN(pred_fake1, True).mean() * self.opt.lambda_GAN
+            self.loss_G_GAN += self.criterionGAN(pred_fake2, True).mean() * self.opt.lambda_GAN
         else:
             self.loss_G_GAN = 0.0
 
         if self.opt.lambda_NCE > 0.0:
             self.loss_NCE = self.calculate_NCE_loss(self.real_A, self.fake_B)
+            self.loss_NCE += self.calculate_NCE_loss(self.real_A1, self.fake_B1)
+            self.loss_NCE += self.calculate_NCE_loss(self.real_A2, self.fake_B2)
         else:
             self.loss_NCE, self.loss_NCE_bd = 0.0, 0.0
 
         if self.opt.nce_idt and self.opt.lambda_NCE > 0.0:
             self.loss_NCE_Y = self.calculate_NCE_loss(self.real_B, self.idt_B)
+            self.loss_NCE_Y += self.calculate_NCE_loss(self.real_B1, self.idt_B1)
+            self.loss_NCE_Y += self.calculate_NCE_loss(self.real_B2, self.idt_B2)
             loss_NCE_both = (self.loss_NCE + self.loss_NCE_Y) * 0.5
         else:
             loss_NCE_both = self.loss_NCE
     
-
 
         # Prediction Loss
         # B1 & B2 -> B0
