@@ -88,8 +88,7 @@ class CUTModel(BaseModel):
             for nce_layer in self.nce_layers:
                 self.criterionNCE.append(PatchNCELoss(opt).to(self.device))
 
-            self.criterionIdt = torch.nn.L1Loss().to(self.device)
-            self.criterionCycle = torch.nn.L1Loss().to(self.device)
+            self.criterionPred = torch.nn.L1Loss().to(self.device)
             self.optimizer_G = torch.optim.Adam(
                 self.netG.parameters(), self.netP.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2)
             )
@@ -107,13 +106,19 @@ class CUTModel(BaseModel):
         bs_per_gpu = data["A0"].size(0) // max(len(self.opt.gpu_ids), 1)
         self.set_input(data)
         self.real_A = self.real_A[:bs_per_gpu]
+        self.real_A1 = self.real_A1[:bs_per_gpu]
+        self.real_A2 = self.real_A2[:bs_per_gpu]
         self.real_B = self.real_B[:bs_per_gpu]
+        self.real_B1 = self.real_B1[:bs_per_gpu]
+        self.real_B2 = self.real_B2[:bs_per_gpu]
         self.forward()                     # compute fake images: G(A)
         if self.opt.isTrain:
             self.compute_D_loss().backward()                  # calculate gradients for D
             self.compute_G_loss().backward()                   # calculate graidents for G
             if self.opt.lambda_NCE > 0.0:
-                self.optimizer_F = torch.optim.Adam(self.netF.parameters(), lr=self.opt.lr, betas=(self.opt.beta1, self.opt.beta2))
+                self.optimizer_F = torch.optim.Adam(
+                    self.netF.parameters(), lr=self.opt.lr, betas=(self.opt.beta1, self.opt.beta2)
+                )
                 self.optimizers.append(self.optimizer_F)
 
     def optimize_parameters(self):
@@ -239,7 +244,7 @@ class CUTModel(BaseModel):
         # Prediction Loss
         # B1 & B2 -> B0
         pred_B = self.netP(self.real_B1, self.real_B2)
-        loss_pred_B = self.criterionCycle(pred_B, self.real_B) * self.opt.lambda_GAN
+        loss_pred_B = self.criterionPred(pred_B, self.real_B) * self.opt.lambda_GAN
 
         self.loss_G = self.loss_G_GAN + loss_NCE_both + loss_pred_B
         return self.loss_G
