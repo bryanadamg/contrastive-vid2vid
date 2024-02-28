@@ -76,7 +76,7 @@ class CUTModel(BaseModel):
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)
         self.netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, self.gpu_ids, opt)
 
-        self.netP = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)
+        self.netP = networks.define_G(2*opt.input_nc, opt.output_nc, opt.ngf, opt.netP, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)
 
 
         if self.isTrain:
@@ -245,7 +245,7 @@ class CUTModel(BaseModel):
 
         # Prediction Loss
         # B1 & B2 -> B0
-        pred_B = self.netP(self.real_B1, self.real_B2)
+        pred_B = self.netP(torch.cat((self.real_B1, self.real_B2), 1))
         loss_pred_B = self.criterionPred(pred_B, self.real_B) * self.opt.lambda_GAN
 
         self.loss_G = self.loss_G_GAN + loss_NCE_both + loss_pred_B
