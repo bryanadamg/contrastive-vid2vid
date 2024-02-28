@@ -4,6 +4,7 @@ from .base_model import BaseModel
 from . import networks
 from .patchnce import PatchNCELoss
 import util.util as util
+import itertools
 
 
 class CUTModel(BaseModel):
@@ -90,7 +91,8 @@ class CUTModel(BaseModel):
 
             self.criterionPred = torch.nn.L1Loss().to(self.device)
             self.optimizer_G = torch.optim.Adam(
-                self.netG.parameters(), self.netP.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2)
+                itertools.chain(self.netG.parameters(), self.netP.parameters()),
+                lr=opt.lr, betas=(opt.beta1, opt.beta2)
             )
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2))
             self.optimizers.append(self.optimizer_G)
