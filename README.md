@@ -35,7 +35,7 @@ To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/ind
 - Test the model:
 ```bash
 #!./scripts/test_cyclegan.sh
-python test.py --dataroot ./datasets/maps --name maps_cyclegan --model cycle_gan
+python test.py --dataroot ./datasets/docker_dataset --name docker --CUT_mode CUT --dataset_mode unaligned_triplet --phase train
 ```
 - The test results will be saved to a html file here: `./results/maps_cyclegan/latest_test/index.html`.
 - Local ssh to view visdom server:
