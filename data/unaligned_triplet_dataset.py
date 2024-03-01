@@ -44,23 +44,25 @@ class UnalignedTripletDataset(BaseDataset):
         A_img = Image.open(A_path).convert('RGB')
         B_img = Image.open(B_path).convert('RGB')
 
-        w_total = A_img.size(2)
+        h = A_img.size[1]
+        w_total = A_img.size[0]
         w = int(w_total / 3)
 
-        A0 = A_img[:, :, :w]
-        A1 = A_img[:, :, w:2*w]
-        A2 = A_img[:, :, 2*w:]
+        A0 = A_img.crop((0, 0, w, h))
+        A1 = A_img.crop((w, 0, 2*w, h))
+        A2 = A_img.crop((2*w, 0, w_total, h))
 
         A0 = self.transform_A(A0)
         A1 = self.transform_A(A1)
         A2 = self.transform_A(A2)
 
-        w_total = B_img.size(2)
+        h = B_img.size[1]
+        w_total = B_img.size[0]
         w = int(w_total / 3)
 
-        B0 = B_img[:, :, :w]
-        B1 = B_img[:, :, w:2*w]
-        B2 = B_img[:, :, 2*w:]
+        B0 = B_img.crop((0, 0, w, h))
+        B1 = B_img.crop((w, 0, 2*w, h))
+        B2 = B_img.crop((2*w, 0, w_total, h))
 
         B0 = self.transform_B(B0)
         B1 = self.transform_B(B1)
