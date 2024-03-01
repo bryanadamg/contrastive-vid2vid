@@ -20,7 +20,7 @@ class UnalignedTripletDataset(BaseDataset):
         self.B_paths = sorted(make_dataset(self.dir_B))
         self.A_size = len(self.A_paths)
         self.B_size = len(self.B_paths)
-        
+
         btoA = self.opt.direction == 'BtoA'
         input_nc = self.opt.input_nc
         output_nc = self.opt.output_nc
@@ -93,14 +93,6 @@ class UnalignedTripletDataset(BaseDataset):
                2*w + w_offset :2*w + w_offset + self.opt.crop_size]
 
 
-
-        #if input_nc == 1:  # RGB to gray
-        #    tmp = A[0, ...] * 0.299 + A[1, ...] * 0.587 + A[2, ...] * 0.114
-        #    A = tmp.unsqueeze(0)
-
-        #if output_nc == 1:  # RGB to gray
-        #    tmp = B[0, ...] * 0.299 + B[1, ...] * 0.587 + B[2, ...] * 0.114
-        #    B = tmp.unsqueeze(0)
         return {'A0': A0, 'A1': A1, 'A2': A2, 'B0': B0, 'B1': B1, 'B2': B2,
                 'A_paths': A_path, 'B_paths': B_path}
 

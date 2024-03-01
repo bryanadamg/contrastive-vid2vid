@@ -59,7 +59,7 @@ class CUTModel(BaseModel):
 
         # specify the training losses you want to print out.
         # The training/test scripts will call <BaseModel.get_current_losses>
-        self.loss_names = ['G_GAN', 'D_real', 'D_fake', 'G', 'NCE', 'pred_B']
+        self.loss_names = ['G_GAN', 'D_real', 'D_fake', 'G', 'NCE']
         self.visual_names = ['real_A', 'fake_B', 'real_B']
         self.nce_layers = [int(i) for i in self.opt.nce_layers.split(',')]
 
@@ -89,7 +89,6 @@ class CUTModel(BaseModel):
             for nce_layer in self.nce_layers:
                 self.criterionNCE.append(PatchNCELoss(opt).to(self.device))
 
-            self.criterionPred = torch.nn.L1Loss().to(self.device)
             self.optimizer_G = torch.optim.Adam(
                 itertools.chain(self.netG.parameters(), self.netP.parameters()),
                 lr=opt.lr, betas=(opt.beta1, opt.beta2)
@@ -181,6 +180,9 @@ class CUTModel(BaseModel):
         self.fake_B = self.fake[:self.real_A.size(0)]
         self.fake_B1 = self.fake1[:self.real_A1.size(0)]
         self.fake_B2 = self.fake2[:self.real_A2.size(0)]
+        self.pred_fake_B = self.netP(torch.cat((self.fake_B1, self.fake_B2), 1))
+        self.pred_real_B = self.netP(torch.cat((self.real_B1, self.real_B2), 1))
+
         if self.opt.nce_idt:
             self.idt_B = self.fake[self.real_A.size(0):]
             self.idt_B1 = self.fake1[self.real_A1.size(0):]
@@ -191,13 +193,16 @@ class CUTModel(BaseModel):
         fake = self.fake_B.detach()
         fake1 = self.fake_B1.detach()
         fake2 = self.fake_B2.detach()
+        fakePred = self.pred_fake_B.detach()
         # Fake; stop backprop to the generator by detaching fake_B
         pred_fake = self.netD(fake)
         pred_fake1 = self.netD(fake1)
         pred_fake2 = self.netD(fake2)
+        pred_fakePred = self.netD(fakePred)
         self.loss_D_fake = self.criterionGAN(pred_fake, False).mean()
         self.loss_D_fake += self.criterionGAN(pred_fake1, False).mean()
         self.loss_D_fake += self.criterionGAN(pred_fake2, False).mean()
+        self.loss_D_fake += self.criterionGAN(pred_fakePred, False).mean()
         # Real
         self.pred_real = self.netD(self.real_B)
         self.pred_real1 = self.netD(self.real_B1)
@@ -216,14 +221,17 @@ class CUTModel(BaseModel):
         fake = self.fake_B
         fake1 = self.fake_B1
         fake2 = self.fake_B2
+        fakePred = self.pred_fake_B
         # First, G(A) should fake the discriminator
         if self.opt.lambda_GAN > 0.0:
             pred_fake = self.netD(fake)
             pred_fake1 = self.netD(fake1)
             pred_fake2 = self.netD(fake2)
+            pred_fake_pred = self.netD(fakePred)
             self.loss_G_GAN = self.criterionGAN(pred_fake, True).mean() * self.opt.lambda_GAN
             self.loss_G_GAN += self.criterionGAN(pred_fake1, True).mean() * self.opt.lambda_GAN
             self.loss_G_GAN += self.criterionGAN(pred_fake2, True).mean() * self.opt.lambda_GAN
+            self.loss_G_GAN += self.criterionGAN(pred_fake_pred, True).mean() * self.opt.lambda_GAN
         else:
             self.loss_G_GAN = 0.0
 
@@ -231,6 +239,7 @@ class CUTModel(BaseModel):
             self.loss_NCE = self.calculate_NCE_loss(self.real_A, self.fake_B)
             self.loss_NCE += self.calculate_NCE_loss(self.real_A1, self.fake_B1)
             self.loss_NCE += self.calculate_NCE_loss(self.real_A2, self.fake_B2)
+            self.loss_NCE += self.calculate_NCE_loss(self.real_A, self.pred_fake_B)
         else:
             self.loss_NCE, self.loss_NCE_bd = 0.0, 0.0
 
@@ -238,17 +247,12 @@ class CUTModel(BaseModel):
             self.loss_NCE_Y = self.calculate_NCE_loss(self.real_B, self.idt_B)
             self.loss_NCE_Y += self.calculate_NCE_loss(self.real_B1, self.idt_B1)
             self.loss_NCE_Y += self.calculate_NCE_loss(self.real_B2, self.idt_B2)
+            self.loss_NCE_Y += self.calculate_NCE_loss(self.real_B, self.pred_real_B)
             loss_NCE_both = (self.loss_NCE + self.loss_NCE_Y) * 0.5
         else:
             loss_NCE_both = self.loss_NCE
-    
 
-        # Prediction Loss
-        # B1 & B2 -> B0
-        pred_B = self.netP(torch.cat((self.real_B1, self.real_B2), 1))
-        loss_pred_B = self.criterionPred(pred_B, self.real_B) * self.opt.lambda_GAN
-
-        self.loss_G = self.loss_G_GAN + loss_NCE_both + loss_pred_B
+        self.loss_G = self.loss_G_GAN + loss_NCE_both
         return self.loss_G
 
     def calculate_NCE_loss(self, src, tgt):
