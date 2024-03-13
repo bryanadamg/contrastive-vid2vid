@@ -202,7 +202,7 @@ def Swin_L(num_classes, config=[2,2,18,2], dim=192, **kwargs):
     return SwinTransformer(num_classes, config=config, dim=dim, **kwargs)
 
 if __name__ == '__main__':
-    test_model = Swin_B(1000)
+    test_model = Swin_L(1000)
     n_parameters = sum(p.numel() for p in test_model.parameters() if p.requires_grad)
     print(test_model)
     dummy_input = torch.rand(1,3,1024,1024)
