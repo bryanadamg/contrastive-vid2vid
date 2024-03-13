@@ -5,3 +5,6 @@ visdom>=0.1.8.8
 wandb
 packaging
 GPUtil>=1.4.0
+einops
+thop
+timm

@@ -35,15 +35,17 @@ for nce_layer in nce_layers:
 def calculate_NCE_loss(src, tgt):
     n_layers = len(nce_layers)
     feat_q = netG(tgt, nce_layers, encode_only=True)
+    feat_q = [feat_q[0]]
+    print('feat_q_0 size: ', feat_q[0].size())
 
-    for i, layer in enumerate(nce_layers):
-        print(f'feat_{layer} size: ', feat_q[i].size())
-
+    # for i, layer in enumerate(nce_layers):
+    #     print(f'feat_{layer} size: ', feat_q[i].size())
 
     feat_k = netG(src, nce_layers, encode_only=True)
+    feat_k = [feat_k[0]]
+    print('feat_k_0 size: ', feat_k[0].size())
+
     feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
-    print(feat_k_pool[0].shape)
-    print(feat_k_pool[0].size())
 
     for i, pool in enumerate(feat_k_pool):
         print(f'feat_k_pool_{i} size: ', pool.size())
@@ -55,7 +57,8 @@ def calculate_NCE_loss(src, tgt):
         print(f'feat_q_pool_{i} size: ', pool.size())
         print(f'sample_{i} size: ', sample_ids[i].size())
 
-
+    print()
+    print('Calculate NCE Loss')
     total_nce_loss = 0.0
     for f_q, f_k, crit, nce_layer in zip(feat_q_pool, feat_k_pool, criterionNCE, nce_layers):
         loss = crit(f_q, f_k) * lambda_NCE
