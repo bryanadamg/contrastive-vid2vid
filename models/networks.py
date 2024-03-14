@@ -530,13 +530,13 @@ class StridedConvF(nn.Module):
 
 
 class SwinSampleF(nn.Module):
-    def __init__(self, use_swin=False, init_type='normal', init_gain=0.02, nc=256, gpu_ids=[]):
+    def __init__(self, use_swin=True, init_type='normal', init_gain=0.02, nc=256, gpu_ids=[]):
         # potential issues: currently, we use the same patch_ids for multiple images in the batch
-        super(PatchSampleF, self).__init__()
+        super(SwinSampleF, self).__init__()
         self.l2norm = Normalize(2)
         self.use_swin = use_swin
         self.nc = nc  # hard-coded
-        self.mlp_init = False
+        self.swin_init = False
         self.init_type = init_type
         self.init_gain = init_gain
         self.gpu_ids = gpu_ids
@@ -544,31 +544,29 @@ class SwinSampleF(nn.Module):
     def create_mlp(self, feats):
         for swin_id, feat in enumerate(feats):
             input_nc = feat.shape[1]
-            # TODO: how to make swin take input more than 3 channels?
-            swin = nn.Sequential(*[nn.Linear(input_nc, self.nc), nn.ReLU(), nn.Linear(self.nc, self.nc)])
+            # input (B x C x H x W)
+            swin = SwinTransformer(self.nc, config=[2,2,6,2], dim=96, input_channel=input_nc)
+            # last layer (B x dim*8)
+            # output (B x nc)
             if len(self.gpu_ids) > 0:
                 swin.cuda()
             setattr(self, 'swin_%d' % swin_id, swin)
         init_net(self, self.init_type, self.init_gain, self.gpu_ids)
-        self.mlp_init = True
+        self.swin_init = True
 
     def forward(self, feats):
-        return_ids = []
         return_feats = []
-        if self.use_mlp and not self.mlp_init:
+        if self.use_swin and not self.swin_init:
             self.create_mlp(feats)
         for feat_id, feat in enumerate(feats):
             B, H, W = feat.shape[0], feat.shape[2], feat.shape[3]
-            # # resize feat into (B x H*W x C)
-            # feat_reshape = feat.permute(0, 2, 3, 1).flatten(1, 2)
-
             if self.use_swin:
                 swin = getattr(self, 'swin_%d' % feat_id)
                 x = swin(feat)
             # return_ids.append(patch_id)
-            x_sample = self.l2norm(x_sample)
+            x = self.l2norm(x)
 
-            return_feats.append(x_sample)
+            return_feats.append(x)
         return return_feats
 
 
@@ -612,12 +610,16 @@ class PatchSampleF(nn.Module):
                     patch_id = patch_id[:int(min(num_patches, patch_id.shape[0]))]  # .to(patch_ids.device)
                 patch_id = torch.tensor(patch_id, dtype=torch.long, device=feat.device)
                 x_sample = feat_reshape[:, patch_id, :].flatten(0, 1)  # reshape(-1, x.shape[1])
+                # x_sample after slicing: ([B, num_patch, C])
+                # x_sample after flatten: ([B*num_patch, C])
             else:
                 x_sample = feat_reshape
                 patch_id = []
             if self.use_mlp:
                 mlp = getattr(self, 'mlp_%d' % feat_id)
+                # (B*num_patches, C)
                 x_sample = mlp(x_sample)
+                # (B*num_patches, defined_mlp_output)
             return_ids.append(patch_id)
             x_sample = self.l2norm(x_sample)
 

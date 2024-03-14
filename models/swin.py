@@ -104,7 +104,7 @@ class Block(nn.Module):
         if input_resolution <= window_size:
             self.type = 'W'
 
-        print("Block Initial Type: {}, drop_path_rate:{:.6f}".format(self.type, drop_path))
+        # print("Block Initial Type: {}, drop_path_rate:{:.6f}".format(self.type, drop_path))
         self.ln1 = nn.LayerNorm(input_dim)
         self.msa = WMSA(input_dim, input_dim, head_dim, window_size, self.type)
         self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
@@ -125,19 +125,20 @@ class SwinTransformer(nn.Module):
     In this Implementation, the standard shape of data is (b h w c), which is a similar protocal as cnn.
     """
     #TODO make layers using configs
-    def __init__(self, num_classes, config=[2,2,6,2], dim=96, drop_path_rate=0.2, input_resolution=224):
+    def __init__(self, num_classes, config=[2,2,6,2], dim=96, drop_path_rate=0.2, input_resolution=224, input_channel=3):
         super(SwinTransformer, self).__init__()
         self.config = config
         self.dim = dim
         self.head_dim = 32
         self.window_size = 8
+        self.input_nc = input_channel
         # self.patch_partition = Rearrange('b c (h1 sub_h) (w1 sub_w) -> b h1 w1 (c sub_h sub_w)', sub_h=4, sub_w=4)
 
         # drop path rate for each layer
         dpr = [x.item() for x in torch.linspace(0, drop_path_rate, sum(config))]
 
         begin = 0
-        self.stage1 = [nn.Conv2d(3, dim, kernel_size=4, stride=4),
+        self.stage1 = [nn.Conv2d(self.input_nc, dim, kernel_size=4, stride=4),
                        Rearrange('b c h w -> b h w c'),
                        nn.LayerNorm(dim),] + \
                       [Block(dim, dim, self.head_dim, self.window_size, dpr[i+begin], 'W' if not i%2 else 'SW', input_resolution//4) 
@@ -179,15 +180,20 @@ class SwinTransformer(nn.Module):
             nn.init.constant_(m.weight, 1.0)
 
     def forward(self, x):
+        # (B, C, H, W)
         x = self.stage1(x)
+        # ([2, 128, 128, 96])
         x = self.stage2(x)
+        # ([2, 64, 64, 192])
         x = self.stage3(x)
+        # ([2, 32, 32, 384])
         x = self.stage4(x)
+        # ([2, 16, 16, 768])
         x = self.norm_last(x)
-
+        # ([2, 16, 16, 768])
         x = self.mean_pool(x)
-        print(x.size())
-        x = self.classifier(x)
+        # (B, dim*8)
+        # x = self.classifier(x)
         return x
 
 def Swin_T(num_classes, config=[2,2,6,2], dim=96, **kwargs):
@@ -203,14 +209,19 @@ def Swin_L(num_classes, config=[2,2,18,2], dim=192, **kwargs):
     return SwinTransformer(num_classes, config=config, dim=dim, **kwargs)
 
 if __name__ == '__main__':
-    test_model = Swin_B(1000)
-    n_parameters = sum(p.numel() for p in test_model.parameters() if p.requires_grad)
+    # test_model = Swin_B(1000)
+    model = SwinTransformer(256, config=[2,2,6,2], dim=96, input_channel=128)
+    n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     # print(test_model)
-    dummy_input = torch.rand(1,3,1024,1024)
-    print(dummy_input)
-    output = test_model(dummy_input)
+    dummy_input = torch.rand(2,128,512,512)
+    # print(dummy_input)
+    output = model(dummy_input)
+    # output = l2norm(output)
     print('output: ', output.size())
-    print(output)
+    # last layer size: (B * dim*8)
+    # output size: (B * classifier)
+
+    # print(output)
     # flops, params = profile(test_model, inputs=(dummy_input, ))
     # print(params)
     # print(flops)

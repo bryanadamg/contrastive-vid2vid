@@ -17,7 +17,7 @@ init_type, init_gain = 'xavier', 0.02
 no_antialias, no_antialias_up = True, True
 gpu_ids = -1
 
-num_patches = 256
+num_patches = 32
 nce_layers = [0,4,8,12,16]
 lambda_NCE = 1.0
 
@@ -27,6 +27,7 @@ opt.isTrain = False
 
 netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, opt.gpu_ids, opt)
 netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
+# netF = networks.SwinSampleF(use_swin=True)
 criterionNCE = []
 
 for nce_layer in nce_layers:
@@ -49,13 +50,13 @@ def calculate_NCE_loss(src, tgt):
 
     for i, pool in enumerate(feat_k_pool):
         print(f'feat_k_pool_{i} size: ', pool.size())
-        print(f'sample_{i} size: ', sample_ids[i].size())
+        # print(f'sample_{i} size: ', sample_ids[i].size())
         
     feat_q_pool, _ = netF(feat_q, num_patches, sample_ids)
 
     for i, pool in enumerate(feat_q_pool):
         print(f'feat_q_pool_{i} size: ', pool.size())
-        print(f'sample_{i} size: ', sample_ids[i].size())
+        # print(f'sample_{i} size: ', sample_ids[i].size())
 
     print()
     print('Calculate NCE Loss')
@@ -75,7 +76,7 @@ tgt = dataset[0]['B1']
 real = torch.cat((src, tgt), dim=0) if opt.nce_idt and opt.isTrain else src
 real = real.unsqueeze(0)
 
-real = torch.rand(2, 3, 256, 256)
+real = torch.rand(2, 3, 512, 512)
 # real = torch.rand(1,3,1024,1024)
 # torch.Size([6, 256, 256])
 print(real.size())
