@@ -7,7 +7,7 @@ import util.util as util
 import itertools
 
 
-class CUTModel(BaseModel):
+class SwinCUTModel(BaseModel):
     """ This class implements CUT and FastCUT model, described in the paper
     Contrastive Learning for Unpaired Image-to-Image Translation
     Taesung Park, Alexei A. Efros, Richard Zhang, Jun-Yan Zhu
@@ -29,7 +29,7 @@ class CUTModel(BaseModel):
         parser.add_argument('--nce_includes_all_negatives_from_minibatch',
                             type=util.str2bool, nargs='?', const=True, default=False,
                             help='(used for single image translation) If True, include the negatives from the other samples of the minibatch when computing the contrastive loss. Please see models/patchnce.py for more details.')
-        parser.add_argument('--netF', type=str, default='mlp_sample', choices=['sample', 'reshape', 'mlp_sample'], help='how to downsample the feature map')
+        parser.add_argument('--netF', type=str, default='mlp_sample', choices=['sample', 'reshape', 'mlp_sample', 'swin'], help='how to downsample the feature map')
         parser.add_argument('--netF_nc', type=int, default=256)
         parser.add_argument('--nce_T', type=float, default=0.07, help='temperature for NCE loss')
         parser.add_argument('--num_patches', type=int, default=256, help='number of patches per layer')
@@ -263,8 +263,8 @@ class CUTModel(BaseModel):
             feat_q = [torch.flip(fq, [3]) for fq in feat_q]
 
         feat_k = self.netG(src, self.nce_layers, encode_only=True)
-        feat_k_pool, sample_ids = self.netF(feat_k, self.opt.num_patches, None)
-        feat_q_pool, _ = self.netF(feat_q, self.opt.num_patches, sample_ids)
+        feat_k_pool  = self.netF(feat_k)
+        feat_q_pool = self.netF(feat_q)
 
         total_nce_loss = 0.0
         for f_q, f_k, crit, nce_layer in zip(feat_q_pool, feat_k_pool, self.criterionNCE, self.nce_layers):
