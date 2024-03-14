@@ -76,7 +76,7 @@ tgt = dataset[0]['B1']
 real = torch.cat((src, tgt), dim=0) if opt.nce_idt and opt.isTrain else src
 real = real.unsqueeze(0)
 
-real = torch.rand(2, 3, 512, 512)
+# real = torch.rand(2, 3, 512, 512)
 # real = torch.rand(1,3,1024,1024)
 # torch.Size([6, 256, 256])
 print(real.size())
