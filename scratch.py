@@ -35,14 +35,14 @@ for nce_layer in nce_layers:
 def calculate_NCE_loss(src, tgt):
     n_layers = len(nce_layers)
     feat_q = netG(tgt, nce_layers, encode_only=True)
-    feat_q = [feat_q[0]]
+    feat_q = [feat_q[1]]
     print('feat_q_0 size: ', feat_q[0].size())
 
     # for i, layer in enumerate(nce_layers):
     #     print(f'feat_{layer} size: ', feat_q[i].size())
 
     feat_k = netG(src, nce_layers, encode_only=True)
-    feat_k = [feat_k[0]]
+    feat_k = [feat_k[1]]
     print('feat_k_0 size: ', feat_k[0].size())
 
     feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
@@ -74,6 +74,9 @@ tgt = dataset[0]['B1']
 
 real = torch.cat((src, tgt), dim=0) if opt.nce_idt and opt.isTrain else src
 real = real.unsqueeze(0)
+
+real = torch.rand(2, 3, 256, 256)
+# real = torch.rand(1,3,1024,1024)
 # torch.Size([6, 256, 256])
 print(real.size())
 # if opt.flip_equivariance:

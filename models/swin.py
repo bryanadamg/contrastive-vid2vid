@@ -186,6 +186,7 @@ class SwinTransformer(nn.Module):
         x = self.norm_last(x)
 
         x = self.mean_pool(x)
+        print(x.size())
         x = self.classifier(x)
         return x
 
@@ -202,12 +203,14 @@ def Swin_L(num_classes, config=[2,2,18,2], dim=192, **kwargs):
     return SwinTransformer(num_classes, config=config, dim=dim, **kwargs)
 
 if __name__ == '__main__':
-    test_model = Swin_L(1000)
+    test_model = Swin_B(1000)
     n_parameters = sum(p.numel() for p in test_model.parameters() if p.requires_grad)
-    print(test_model)
+    # print(test_model)
     dummy_input = torch.rand(1,3,1024,1024)
+    print(dummy_input)
     output = test_model(dummy_input)
-    print(output.size())
+    print('output: ', output.size())
+    print(output)
     # flops, params = profile(test_model, inputs=(dummy_input, ))
     # print(params)
     # print(flops)
