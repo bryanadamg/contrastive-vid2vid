@@ -29,7 +29,7 @@ cd contrastive-vid2vid
 - Download dataset (e.g. maps):
 - Train a model:
 ```bash
-python train.py --dataroot /root/autodl-fs/docker_roads --name docker_roads --CUT_mode CUT --dataset_mode unaligned_triplet
+python train.py --dataroot /root/autodl-fs/utopilot_sun2rain --name utopilot_sun2rain_swin --CUT_mode CUT --dataset_mode unaligned_triplet --load_size 270 --crop_size 256 --netF swin --model swin_cut
 ```
 To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`.
 - Test the model:

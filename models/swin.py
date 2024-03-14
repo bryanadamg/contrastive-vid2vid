@@ -125,12 +125,21 @@ class SwinTransformer(nn.Module):
     In this Implementation, the standard shape of data is (b h w c), which is a similar protocal as cnn.
     """
     #TODO make layers using configs
-    def __init__(self, num_classes, config=[2,2,6,2], dim=96, drop_path_rate=0.2, input_resolution=224, input_channel=3):
+    def __init__(
+            self,
+            num_classes,
+            config=[2,2,6,2],
+            dim=96,
+            drop_path_rate=0.2,
+            input_resolution=224,
+            input_channel=3,
+            window_size=8
+        ):
         super(SwinTransformer, self).__init__()
         self.config = config
         self.dim = dim
         self.head_dim = 32
-        self.window_size = 8
+        self.window_size = window_size
         self.input_nc = input_channel
         # self.patch_partition = Rearrange('b c (h1 sub_h) (w1 sub_w) -> b h1 w1 (c sub_h sub_w)', sub_h=4, sub_w=4)
 
@@ -210,10 +219,20 @@ def Swin_L(num_classes, config=[2,2,18,2], dim=192, **kwargs):
 
 if __name__ == '__main__':
     # test_model = Swin_B(1000)
-    model = SwinTransformer(256, config=[2,2,6,2], dim=96, input_channel=128)
+    dummy_input = torch.rand(1, 3, 262, 262)
+    model = SwinTransformer(
+        256, config=[2,2,6,2], dim=96, input_channel=dummy_input.shape[1], window_size=int(dummy_input.shape[2]/32)
+    )
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     # print(test_model)
-    dummy_input = torch.rand(2,128,512,512)
+
+    
+    # feat_0 size:  torch.Size([1, 3, 262, 262]) x
+    # feat_4 size:  torch.Size([1, 128, 256, 256]) v
+    # feat_8 size:  torch.Size([1, 256, 128, 128]) v
+    # feat_12 size:  torch.Size([1, 256, 64, 64]) v
+    # feat_16 size:  torch.Size([1, 256, 64, 64]) v
+
     # print(dummy_input)
     output = model(dummy_input)
     # output = l2norm(output)

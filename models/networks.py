@@ -546,8 +546,11 @@ class SwinSampleF(nn.Module):
     def create_mlp(self, feats):
         for swin_id, feat in enumerate(feats):
             input_nc = feat.shape[1]
+            window_size = feat.shape[2]/32
             # input (B x C x H x W)
-            swin = SwinTransformer(self.nc, config=[2,2,6,2], dim=96, input_channel=input_nc)
+            swin = SwinTransformer(
+                self.nc, config=[2,2,6,2], dim=96, input_channel=input_nc, window_size=window_size
+            )
             # last layer (B x dim*8)
             # output (B x nc)
             if len(self.gpu_ids) > 0:

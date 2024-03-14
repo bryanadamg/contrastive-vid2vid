@@ -18,7 +18,7 @@ no_antialias, no_antialias_up = True, True
 gpu_ids = -1
 
 num_patches = 32
-nce_layers = [0,4,8,12,16]
+nce_layers = [1,4,8,12,16]
 lambda_NCE = 1.0
 
 opt.num_threads = 0   # test code only supports num_threads = 1
@@ -36,15 +36,11 @@ for nce_layer in nce_layers:
 def calculate_NCE_loss(src, tgt):
     n_layers = len(nce_layers)
     feat_q = netG(tgt, nce_layers, encode_only=True)
-    feat_q = [feat_q[1]]
-    print('feat_q_0 size: ', feat_q[0].size())
 
-    # for i, layer in enumerate(nce_layers):
-    #     print(f'feat_{layer} size: ', feat_q[i].size())
+    for i, layer in enumerate(nce_layers):
+        print(f'feat_{layer} size: ', feat_q[i].size())
 
     feat_k = netG(src, nce_layers, encode_only=True)
-    feat_k = [feat_k[1]]
-    print('feat_k_0 size: ', feat_k[0].size())
 
     feat_k_pool = netF(feat_k)
 
