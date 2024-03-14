@@ -26,8 +26,8 @@ opt.batch_size = 1
 opt.isTrain = False
 
 netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, opt.gpu_ids, opt)
-netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
-# netF = networks.SwinSampleF(use_swin=True)
+# netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
+netF = networks.SwinSampleF(use_swin=True)
 criterionNCE = []
 
 for nce_layer in nce_layers:
@@ -46,13 +46,13 @@ def calculate_NCE_loss(src, tgt):
     feat_k = [feat_k[1]]
     print('feat_k_0 size: ', feat_k[0].size())
 
-    feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
+    feat_k_pool = netF(feat_k)
 
     for i, pool in enumerate(feat_k_pool):
         print(f'feat_k_pool_{i} size: ', pool.size())
         # print(f'sample_{i} size: ', sample_ids[i].size())
         
-    feat_q_pool, _ = netF(feat_q, num_patches, sample_ids)
+    feat_q_pool = netF(feat_q)
 
     for i, pool in enumerate(feat_q_pool):
         print(f'feat_q_pool_{i} size: ', pool.size())
