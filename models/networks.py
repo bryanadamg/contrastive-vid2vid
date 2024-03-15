@@ -549,12 +549,13 @@ class SwinSampleF(nn.Module):
             window_size = int(feat.shape[2]/32)
             # input (B x C x H x W)
             swin = SwinTransformer(
-                self.nc, config=[2,2,6,2], dim=96, input_channel=input_nc, window_size=window_size
+                self.nc, config=[2,2,6,2], dim=32, input_channel=input_nc, window_size=window_size
             )
             # last layer (B x dim*8)
             # output (B x nc)
             if len(self.gpu_ids) > 0:
                 swin.cuda()
+                swin.to(self.gpu_ids[0])
             setattr(self, 'swin_%d' % swin_id, swin)
         init_net(self, self.init_type, self.init_gain, self.gpu_ids)
         self.swin_init = True

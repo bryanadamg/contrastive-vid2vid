@@ -26,8 +26,7 @@ opt.batch_size = 1
 opt.isTrain = False
 
 netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, opt.gpu_ids, opt)
-# netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
-netF = networks.SwinSampleF(use_swin=True)
+netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
 criterionNCE = []
 
 for nce_layer in nce_layers:
@@ -43,6 +42,7 @@ def calculate_NCE_loss(src, tgt):
     feat_k = netG(src, nce_layers, encode_only=True)
 
     feat_k_pool = netF(feat_k)
+    print(next(netF.parameters()).is_cuda)
 
     for i, pool in enumerate(feat_k_pool):
         print(f'feat_k_pool_{i} size: ', pool.size())

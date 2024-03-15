@@ -219,10 +219,12 @@ def Swin_L(num_classes, config=[2,2,18,2], dim=192, **kwargs):
 
 if __name__ == '__main__':
     # test_model = Swin_B(1000)
-    dummy_input = torch.rand(1, 3, 262, 262)
+    dummy_input = torch.rand(4, 3, 256, 256)
     model = SwinTransformer(
-        256, config=[2,2,6,2], dim=96, input_channel=dummy_input.shape[1], window_size=int(dummy_input.shape[2]/32)
+        256, config=[2,2,6,2], dim=32, input_channel=dummy_input.shape[1], window_size=int(dummy_input.shape[2]/32)
     )
+    model = model.to(0)
+    print(next(model.parameters()).is_cuda)
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
     # print(test_model)
 
