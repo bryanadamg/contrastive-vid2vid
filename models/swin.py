@@ -198,11 +198,11 @@ class SwinTransformer(nn.Module):
         # ([2, 32, 32, 384])
         x = self.stage4(x)
         # ([2, 16, 16, 768])
-        x = self.norm_last(x).view(-1, x.size()[-1])
+        x = self.norm_last(x)
         # ([2, 16, 16, 768])
-        # x = self.mean_pool(x)
+        x = self.mean_pool(x)
         # (B, dim*8)
-        # x = self.classifier(x)
+        x = self.classifier(x)
         return x
 
 def Swin_T(num_classes, config=[2,2,6,2], dim=96, **kwargs):

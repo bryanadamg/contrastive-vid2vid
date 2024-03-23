@@ -18,7 +18,7 @@ no_antialias, no_antialias_up = True, True
 gpu_ids = -1
 
 num_patches = 32
-nce_layers = [1,4,8,12,16]
+nce_layers = [0]
 lambda_NCE = 1.0
 
 opt.num_threads = 0   # test code only supports num_threads = 1
@@ -41,15 +41,14 @@ def calculate_NCE_loss(src, tgt):
 
     feat_k = netG(src, nce_layers, encode_only=True)
 
-    feat_k_pool = netF(feat_k)
+    feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
     print(next(netF.parameters()).is_cuda)
 
     for i, pool in enumerate(feat_k_pool):
         print(f'feat_k_pool_{i} size: ', pool.size())
         # print(f'sample_{i} size: ', sample_ids[i].size())
         
-    feat_q_pool = netF(feat_q)
-
+    feat_q_pool, _ = netF(feat_q, num_patches, sample_ids)
     for i, pool in enumerate(feat_q_pool):
         print(f'feat_q_pool_{i} size: ', pool.size())
         # print(f'sample_{i} size: ', sample_ids[i].size())
@@ -75,7 +74,7 @@ real = real.unsqueeze(0)
 # real = torch.rand(2, 3, 512, 512)
 # real = torch.rand(1,3,1024,1024)
 # torch.Size([6, 256, 256])
-print(real.size())
+print('input: ', real.size())
 # if opt.flip_equivariance:
 #     flipped_for_equivariance = opt.isTrain and (np.random.random() < 0.5)
 #     if flipped_for_equivariance:

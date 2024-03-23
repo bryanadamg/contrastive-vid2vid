@@ -27,9 +27,9 @@ cd contrastive-vid2vid
 
 ### Train/Test
 - Download dataset (e.g. maps):
-- Train a model:
+- Train a CUT model:
 ```bash
-python train.py --dataroot /root/autodl-fs/utopilot_sun2rain --name utopilot_sun2rain_swin --CUT_mode CUT --dataset_mode unaligned_triplet --load_size 270 --crop_size 256 --netF swin --model swin_cut
+python train.py --dataroot ./datasets/utopilot_sun2rain_downscaled --name utopilot_sun2rain_reduced --CUT_mode CUT --dataset_mode unaligned_triplet --load_size 270 --crop_size 256 --batch_size 2
 ```
 To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`.
 - Test the model:
