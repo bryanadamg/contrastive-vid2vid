@@ -1259,9 +1259,25 @@ class UnetGenerator(nn.Module):
         unet_block = UnetSkipConnectionBlock(ngf, ngf * 2, input_nc=None, submodule=unet_block, norm_layer=norm_layer)
         self.model = UnetSkipConnectionBlock(output_nc, ngf, input_nc=input_nc, submodule=unet_block, outermost=True, norm_layer=norm_layer)  # add the outermost layer
 
-    def forward(self, input):
-        """Standard forward"""
-        return self.model(input)
+    def forward(self, input, layers=[], encode_only=False):
+        # TODO: need new layer propagation method
+        if -1 in layers:
+            layers.append(len(self.model))
+        if len(layers) > 0:
+            feat = input
+            feats = []
+            for layer_id, layer in enumerate(self.model):
+                feat = layer(feat)
+                if layer_id in layers:
+                    feats.append(feat)
+                else:
+                    pass
+                if layer_id == layers[-1] and encode_only:
+                    return feats
+            return feat, feats
+        else:
+            """Standard forward"""
+            return self.model(input)
 
 
 class UnetSkipConnectionBlock(nn.Module):

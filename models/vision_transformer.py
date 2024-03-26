@@ -42,5 +42,7 @@ if __name__ == "__main__":
     model = SwinUnet(None, num_classes=3)
     input = torch.rand(1, 3, 224, 224)
     output = model(input)
+    n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print(n_parameters)
     print(output.size())
  
