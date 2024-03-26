@@ -18,7 +18,7 @@ no_antialias, no_antialias_up = True, True
 gpu_ids = -1
 
 num_patches = 32
-nce_layers = [0]
+nce_layers = [0, 1, 2]
 lambda_NCE = 1.0
 
 opt.num_threads = 0   # test code only supports num_threads = 1
