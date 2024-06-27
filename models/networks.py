@@ -7,6 +7,7 @@ from torch.optim import lr_scheduler
 import numpy as np
 from .stylegan_networks import StyleGAN2Discriminator, StyleGAN2Generator, TileStyleGAN2Discriminator
 from .swin import SwinTransformer
+from .vision_transformer import SwinUnet
 
 ###############################################################################
 # Helper Functions
@@ -217,7 +218,7 @@ def init_net(net, init_type='normal', init_gain=0.02, gpu_ids=[], debug=False, i
 
 
 def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, init_type='normal',
-             init_gain=0.02, no_antialias=False, no_antialias_up=False, gpu_ids=[], opt=None):
+             init_gain=0.02, no_antialias=False, no_antialias_up=False, gpu_ids=[], opt=None, img_size=None):
     """Create a generator
 
     Parameters:
@@ -264,6 +265,8 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
     elif netG == 'resnet_cat':
         n_blocks = 8
         net = G_Resnet(input_nc, output_nc, opt.nz, num_downs=2, n_res=n_blocks - 4, ngf=ngf, norm='inst', nl_layer='relu')
+    elif netG == 'swin_unet':
+        net = SwinUnet(None, num_classes=3, img_size=img_size)
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
     return init_net(net, init_type, init_gain, gpu_ids, initialize_weights=('stylegan2' not in netG))
@@ -1230,6 +1233,14 @@ class ResnetBlock(nn.Module):
         """Forward function (with skip connections)"""
         out = x + self.conv_block(x)  # add skip connections
         return out
+
+
+
+class UnetGeneratorNonRecursive(nn.Module):
+    def __init__(self):
+        super(UnetGeneratorNonRecursive, self).__init__()
+        unet_block = None
+        self.model = UnetSkipConnectionBlock()
 
 
 class UnetGenerator(nn.Module):

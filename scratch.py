@@ -25,7 +25,10 @@ opt.num_threads = 0   # test code only supports num_threads = 1
 opt.batch_size = 1
 opt.isTrain = False
 
-netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, opt.gpu_ids, opt)
+netG = networks.define_G(
+    opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain,
+    opt.no_antialias, opt.no_antialias_up, opt.gpu_ids, opt, img_size=opt.crop_size
+)
 netF = networks.define_F(opt.input_nc, opt.netF, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.gpu_ids, opt)
 criterionNCE = []
 
@@ -70,8 +73,7 @@ tgt = dataset[0]['B1']
 
 real = torch.cat((src, tgt), dim=0) if opt.nce_idt and opt.isTrain else src
 real = real.unsqueeze(0)
-
-# real = torch.rand(2, 3, 512, 512)
+# real = torch.rand(1, 3, 244, 244)
 # real = torch.rand(1,3,1024,1024)
 # torch.Size([6, 256, 256])
 print('input: ', real.size())
@@ -84,7 +86,7 @@ fake = netG(real)
 print(fake.size())
 
 loss = calculate_NCE_loss(real, fake)
-
+# python scratch.py --gpu_ids -1 --dataroot ./datasets/utopilot_sun2rain_downscaled --netG swin_unet --crop_size 224
 print(loss)
 
     

@@ -3,7 +3,7 @@ import logging
 import torch
 import torch.nn as nn
 
-from swin_unet import SwinTransformerSys
+from .swin_unet import SwinTransformerSys
 
 logger = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class SwinUnet(nn.Module):
         self.zero_head = zero_head
         self.config = config
 
-        self.swin_unet = SwinTransformerSys(img_size=224,
+        self.swin_unet = SwinTransformerSys(img_size=img_size,
                                 patch_size=4,
                                 in_chans=3,
                                 num_classes=self.num_classes,
@@ -31,11 +31,13 @@ class SwinUnet(nn.Module):
                                 patch_norm=True,
                                 use_checkpoint=False)
 
-    def forward(self, x):
-        # if x.size()[1] == 1:
-        #     x = x.repeat(1,3,1,1)
-        logits = self.swin_unet(x)
-        return logits
+    def forward(self, x, layers=[], encode_only=False):
+        if encode_only:
+            logits, feats = self.swin_unet.forward_features(x)
+            return feats
+        else:
+            logits = self.swin_unet(x)
+            return logits
 
 
 if __name__ == "__main__":
