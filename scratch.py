@@ -44,16 +44,18 @@ def calculate_NCE_loss(src, tgt):
 
     feat_k = netG(src, nce_layers, encode_only=True)
 
-    feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
-    print(next(netF.parameters()).is_cuda)
+    # feat_k_pool, sample_ids = netF(feat_k, num_patches, None)
+    feat_k_pool = [x.view(x.shape[0] * x.shape[1], x.shape[2]) for x in feat_k]
+    # print(next(netF.parameters()).is_cuda)
 
-    for i, pool in enumerate(feat_k_pool):
-        print(f'feat_k_pool_{i} size: ', pool.size())
+    # for i, pool in enumerate(feat_k_pool):
+    #     print(f'feat_k_pool_{i} size: ', pool.size())
         # print(f'sample_{i} size: ', sample_ids[i].size())
-        
-    feat_q_pool, _ = netF(feat_q, num_patches, sample_ids)
-    for i, pool in enumerate(feat_q_pool):
-        print(f'feat_q_pool_{i} size: ', pool.size())
+
+    # feat_q_pool, _ = netF(feat_q, num_patches, sample_ids)
+    feat_q_pool = [x.view(x.shape[0] * x.shape[1], x.shape[2]) for x in feat_q]
+    # for i, pool in enumerate(feat_q_pool):
+    #     print(f'feat_q_pool_{i} size: ', pool.size())
         # print(f'sample_{i} size: ', sample_ids[i].size())
 
     print()
