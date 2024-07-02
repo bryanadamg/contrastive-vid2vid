@@ -267,6 +267,10 @@ def define_G(input_nc, output_nc, ngf, netG, norm='batch', use_dropout=False, in
         net = G_Resnet(input_nc, output_nc, opt.nz, num_downs=2, n_res=n_blocks - 4, ngf=ngf, norm='inst', nl_layer='relu')
     elif netG == 'swin_unet':
         net = SwinUnet(None, num_classes=3, img_size=img_size, input_nc=input_nc)
+        if len(gpu_ids) > 0:
+            assert(torch.cuda.is_available())
+            net.to(gpu_ids[0])
+        return net
     else:
         raise NotImplementedError('Generator model name [%s] is not recognized' % netG)
     return init_net(net, init_type, init_gain, gpu_ids, initialize_weights=('stylegan2' not in netG))

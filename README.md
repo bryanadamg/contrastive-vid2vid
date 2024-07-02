@@ -31,6 +31,7 @@ cd contrastive-vid2vid
 ```bash
 python train.py --dataroot ./datasets/utopilot_sun2rain_downscaled --name utopilot_sun2rain_reduced --CUT_mode CUT --dataset_mode unaligned_triplet --load_size 270 --crop_size 256 --batch_size 2
 python train.py --gpu_ids -1 --dataroot ./datasets/utopilot_sun2rain_downscaled --netG swin_unet --crop_size 224 --name test1 --CUT_mode CUT --dataset_mode unaligned_triplet --model swin_unet_cut --display_id -1 --num_threads 0
+python train.py --dataroot /root/autodl-fs/utopilot_sun2rain/ --netG swin_unet --crop_size 224 --name first_test --CUT_mode CUT --dataset_mode unaligned_triplet --model swin_unet_cut
 ```
 To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/index.html`.
 - Test the model:
