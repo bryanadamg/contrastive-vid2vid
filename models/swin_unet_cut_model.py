@@ -96,7 +96,7 @@ class SwinUnetCUTModel(BaseModel):
 
             self.optimizer_G = torch.optim.Adam(
                 itertools.chain(self.netG.parameters(), self.netP.parameters()),
-                lr=opt.lr, betas=(opt.beta1, opt.beta2)
+                lr=opt.lr, betas=(opt.beta1, opt.beta2), weight_decay=0.0001
             )
             self.optimizer_D = torch.optim.Adam(self.netD.parameters(), lr=opt.lr, betas=(opt.beta1, opt.beta2))
             self.optimizers.append(self.optimizer_G)

@@ -682,6 +682,13 @@ class SwinTransformerSys(nn.Module):
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
+        elif isinstance(m, nn.Conv2d):
+            if m.kernel_size == (1, 1):
+                nn.init.xavier_normal_(m.weight) # gain=nn.init.calculate_gain('linear')
+            else:
+                nn.init.kaiming_normal_(m.weight)
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
 
     @torch.jit.ignore
     def no_weight_decay(self):
