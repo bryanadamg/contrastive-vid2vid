@@ -70,7 +70,7 @@ class CUTModel(BaseModel):
         if self.isTrain:
             self.model_names = ['G', 'F', 'D', 'P']
         else:  # during test time, only load G
-            self.model_names = ['G']
+            self.model_names = ['G', 'P']
 
         # define networks (both generator and discriminator)
         self.netG = networks.define_G(opt.input_nc, opt.output_nc, opt.ngf, opt.netG, opt.normG, not opt.no_dropout, opt.init_type, opt.init_gain, opt.no_antialias, opt.no_antialias_up, self.gpu_ids, opt)

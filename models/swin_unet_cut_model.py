@@ -70,7 +70,7 @@ class SwinUnetCUTModel(BaseModel):
         if self.isTrain:
             self.model_names = ['G', 'F', 'D', 'P']
         else:  # during test time, only load G
-            self.model_names = ['G']
+            self.model_names = ['G', 'P']
 
         # define networks (both generator and discriminator)
         self.netG = networks.define_G(

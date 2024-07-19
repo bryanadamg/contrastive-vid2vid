@@ -7,16 +7,16 @@ from tqdm import tqdm
 
 
 # Open the video file
-input_folder = '/Users/bryanadamg/Documents/Bryan/Documents/SJTU/contrastive-vid2vid/datasets/utopilot_sun2rain/testB'
-output_folder = '/Users/bryanadamg/Documents/Bryan/Documents/SJTU/contrastive-vid2vid/datasets/utopilot_sun2rain_downscaled/testB'
+input_folder = './results/utopilot_sun2rain_reduced/test_latest/images/real_B'
+output_folder = './results/utopilot_sun2rain_reduced/test_latest/images/real_B_resized'
 os.makedirs(output_folder, exist_ok=True)
 
-images = [f for f in os.listdir(input_folder) if f.endswith('.jpg')]
+images = [f for f in os.listdir(input_folder) if f.endswith('.png')]
 
 
 for img in tqdm(images):
     frame = cv2.imread(f"{input_folder}/{img}")
-    frame = cv2.resize(frame, None, fx=0.25, fy=0.25)
+    frame = cv2.resize(frame, (224, 224))
 
     cv2.imwrite(f"{output_folder}/{img}", frame)
 

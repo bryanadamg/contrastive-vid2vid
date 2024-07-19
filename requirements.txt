@@ -8,3 +8,5 @@ GPUtil>=1.4.0
 einops
 thop
 timm
+pytorch-fid
+torchmetrics

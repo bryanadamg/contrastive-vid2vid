@@ -38,12 +38,21 @@ To see more intermediate results, check out `./checkpoints/maps_cyclegan/web/ind
 ```bash
 #!./scripts/test_cyclegan.sh
 python test.py --dataroot ./datasets/docker_dataset --name docker --CUT_mode CUT --dataset_mode unaligned_triplet --phase train
+python test.py --dataroot ./datasets/utopilot_sun2rain_downscaled --gpu_ids -1 --netG swin_unet --name fourth_test --CUT_mode CUT --dataset_mode unaligned_triplet --model swin_unet_cut --num_threads 0 --phase test --num_test 300 --crop_size 224 --load_size 224 --preprocess resize --epoch 80
+python test.py --dataroot ./datasets/utopilot_sun2rain_downscaled --gpu_ids -1 --name utopilot_sun2rain_reduced --CUT_mode CUT --dataset_mode unaligned_triplet --num_threads 0 --phase test --num_test 300
 ```
 - The test results will be saved to a html file here: `./results/maps_cyclegan/latest_test/index.html`.
 - Local ssh to view visdom server:
 ```bash
 ssh -CNgv -L 8097:127.0.0.1:8097 root@connect.southb.gpuhub.com -p 38759
 ```
+
+### Evaluate FID
+
+```bash
+python -m pytorch_fid [path to real test images] [path to generated images]
+```
+
 
 
 
